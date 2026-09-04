@@ -1,0 +1,31 @@
+{
+  "project": {
+    "project": "bert_ner_demo2",
+    "experiment_name": "msra_bert_base"
+  },
+  "model": {
+    "pretrain_name": "bert-base-chinese",
+    "hidden_size":768
+  },
+  "data": {
+    "train_path": "./data/msra/train_5k.txt",
+    "dev_path": "./data/msra/dev_1k.txt",
+    "test_path": "./data/msra/test_1k.txt",
+    "class_path": null
+  },
+  "train": {
+    "seed": 42,
+    "epoch": 10,
+    "batch_size": 16,
+    "max_len": 128,
+    "lr": 2e-5,
+    "warmup_rate": 0.1,
+    "early_stop_patience": 3,
+    "dropout": 0.1,
+    "grad_clip_norm": 1.0
+  },
+  "save": {
+    "model_dir": "./output/msra_bert_base",
+    "log_dir": "./log/msra_bert_base"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "project": {
+    "project": "bert_ner_demo2",
+    "experiment_name": "weibo_bert_wwm"
+  },
+  "model": {
+    "pretrain_name": "hfl/chinese-bert-wwm",
+    "hidden_size": 768
+  },
+  "data": {
+    "train_path": "./data/weibo/train.txt",
+    "dev_path": "./data/weibo/dev.txt",
+    "test_path": "./data/weibo/test.txt",
+    "clss_path": "./data/weibo/class.txt"
+  },
+  "train": {
+    "seed": 42,
+    "epoch": 10,
+    "batch_size": 16,
+    "max_len": 128,
+    "lr": 2e-5,
+    "warmup_rate": 0.1,
+    "early_stop_patience": 3,
+    "dropout": 0.1,
+    "grad_clip_norm": 1.0
+  },
+  "save": {
+    "model_dir": "./output/weibo_bert_wwm",
+    "log_dir": "./log/weibo_bert_wwm"
+  }
+}

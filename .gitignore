@@ -1,0 +1,25 @@
+# IDE配置文件
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Python运行缓存
+__pycache__/          # Python字节码缓存
+*.pyc
+*.pyd
+*.pyo
+
+# 运行生成的产物（不需要版本管理）
+logs/                 # 训练日志
+save_model/           # 模型权重文件（体积大）
+outputs/              # 单次实验输出
+grid_outputs/         # 参数调优实验输出
+*.ckpt
+*.bin
+*.log
+
+# 系统临时文件
+.DS_Store             # Mac系统文件
+Thumbs.db             # Windows系统文件
