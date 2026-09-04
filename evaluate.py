@@ -117,8 +117,11 @@ def evaluate(model,data_loader,device,id2label:dict):
 
             preds = torch.argmax(ouputs["logits"], dim=-1)
 
-            all_pred.append(preds.cpu().numpy().tolist())
-            all_true.append(labels.cpu().numpy().tolist())
+            # 使用extend展平batch
+            batch_pred = preds.cpu().numpy().tolist()
+            batch_true = labels.cpu().numpy().tolist()
+            all_pred.extend(batch_pred)
+            all_true.extend(batch_true)
 
         # 计算整个验证集平均loss
         avg_loss = total_loss / len(data_loader) if len(data_loader) > 0 else 0.0
