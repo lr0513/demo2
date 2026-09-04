@@ -1,4 +1,7 @@
 # Demo 2：BERT 中文命名实体识别
+
+> 本项目采用PyTorch Lightning设计思想，将实体级NER指标封装为`update/compute/reset`状态式指标，实现评估指标与训练/验证流程解耦。
+
 ## 任务详细分析
 ### 1.1 任务定义
 命名实体识别（Named Entity Recognition, NER）属于**Token级序列标注任务**，给定一个句子，模型需要识别出句子中每个字对应的实体标签，同时判断实体的边界和类型。
