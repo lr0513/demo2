@@ -1,5 +1,4 @@
 import os
-
 import torch
 from torch.utils.data import Dataset
 
@@ -47,13 +46,14 @@ def load_ner_data(file_path: str, label_map: dict = None, class_path: str = None
                 bio_label_list.append(f"B-{type}")
                 bio_label_list.append(f"I-{type}")
             bio_label_list.append("O")
-            label_map = {label:idx for idx, label in enumerate(bio_label_list)}
-        # MSRA数据集：自动统计标签
-        all_labels = set()
-        for labels in label_lists:
-            all_labels.update(labels)
-        all_labels = sorted(list(all_labels))
-        label_map = {label: idx for idx, label in enumerate(all_labels)}
+            label_map = {label: idx for idx, label in enumerate(bio_label_list)}
+        else:
+            # MSRA数据集：自动统计标签
+            all_labels = set()
+            for labels in label_lists:
+                all_labels.update(labels)
+            all_labels = sorted(list(all_labels))
+            label_map = {label: idx for idx, label in enumerate(all_labels)}
 
     # 标签转id
     label_ids = []
@@ -79,38 +79,38 @@ class NERDataset(Dataset):
 
 def get_collate_fn(tokenizer, max_len):
     def collate_fn(batch):
-        '''
-        自定义批次处理函数，DataLoader自动调用
-        :param batch: 一个batch的数据，格式 [(sent1,label1),(sent2,label2)...]
-        :return: dict: input_ids, attention_mask, labels
-        '''
-        # 拆分batch：句子列表、标签列表
         texts = [item[0] for item in batch]
         batch_labels = [item[1] for item in batch]
-        # 将汉字列表拼成完整字符串，给分词器处理
-        text_strings = ["".join(word_list) for word_list in texts]
+
+        # 关键点：is_split_into_words=True，输入是单字列表！
         encode_result = tokenizer(
-            text_strings,
-            padding="longest",
+            texts,
+            padding="max_length",
             truncation=True,
             return_tensors="pt",
-            max_length=max_len
+            max_length=max_len,
+            is_split_into_words=True
         )
 
         input_ids = encode_result["input_ids"]
         attention_mask = encode_result["attention_mask"]
         batch_size, seq_len = input_ids.shape
 
-        # 初始化标签全部填充 -100，CrossEntropyLoss自动忽略该位置
         label_tensor = torch.full((batch_size, seq_len), fill_value=-100, dtype=torch.long)
 
-        # token与原始汉字标签对齐
         for i in range(batch_size):
             raw_label = batch_labels[i]
             word_id_list = encode_result.word_ids(batch_index=i)
+            prev_word_idx = None
             for pos, word_idx in enumerate(word_id_list):
-                if word_idx is not None:
-                    label_tensor[i][pos] = raw_label[word_idx]
+                if word_idx is None:
+                    # CLS / SEP / PAD
+                    label_tensor[i][pos] = -100
+                else:
+                    # 只给该单词第一个token赋值真实标签，sub‑word保持‑100
+                    if word_idx != prev_word_idx:
+                        label_tensor[i][pos] = raw_label[word_idx]
+                    prev_word_idx = word_idx
 
         return {
             "input_ids": input_ids,
