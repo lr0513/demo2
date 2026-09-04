@@ -8,9 +8,9 @@
     "hidden_size": 768
   },
   "data": {
-    "train_path": "./data/msra/train_5k.txt",
-    "dev_path": "./data/msra/dev_1k.txt",
-    "test_path": "./data/msra/test_1k.txt",
+    "train_path": "./data/MSRA/train_5k.txt",
+    "dev_path": "./data/MSRA/dev_1k.txt",
+    "test_path": "./data/MSRA/test_1k.txt",
     "class_path": null
   },
   "train": {

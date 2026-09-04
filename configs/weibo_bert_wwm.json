@@ -11,7 +11,7 @@
     "train_path": "./data/weibo/train.txt",
     "dev_path": "./data/weibo/dev.txt",
     "test_path": "./data/weibo/test.txt",
-    "clss_path": "./data/weibo/class.txt"
+    "class_path": "./data/weibo/class.txt"
   },
   "train": {
     "seed": 42,
