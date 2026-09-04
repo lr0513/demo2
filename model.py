@@ -18,7 +18,7 @@ class BertNERModel(nn.Module):
         loss = None
         # 训练阶段
         if labels is not None:
-            # 忽略标签为-100的位置（[CLS]、[SEP]、padding）
+            # 忽略标签为-100的位置（[CLS]、[SEP]、padding、子词）
             loss_fct = nn.CrossEntropyLoss(ignore_index=-100)
             # 展平计算loss
             loss = loss_fct(logits.view(-1, logits.size(-1)), labels.view(-1))
