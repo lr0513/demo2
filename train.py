@@ -85,7 +85,7 @@ def train(cfg):
         num_training_steps=total_steps
     )
 
-    best_f1 = 0.0
+    best_f1 = -1.0
     early_stop_count = 0
 
     for epoch in range(cfg.train.epoch):
@@ -111,7 +111,10 @@ def train(cfg):
         print(f"\nEpoch {epoch + 1} train loss: {avg_train_loss:.4f}")
 
         # 验证集评估（实体级P/R/F1）
-        dev_precision, dev_recall, dev_f1 = evaluate(model, dev_loader, device, id2label)
+        dev_metrics = evaluate(model, dev_loader, device, id2label)
+        dev_precision = dev_metrics["precision"]
+        dev_recall = dev_metrics["recall"]
+        dev_f1 = dev_metrics["f1"]
         print(f"Epoch {epoch + 1} dev precision:{dev_precision:.4f} recall:{dev_recall:.4f} f1:{dev_f1:.4f}")
 
         # 记录日志
@@ -138,7 +141,10 @@ def train(cfg):
     # 训练结束加载最优模型，评估测试集
     print("\n==========测试集评估==========")
     model.load_state_dict(torch.load(f"{cfg.save.model_dir}/best_model.bin"))
-    test_precision, test_recall, test_f1 = evaluate(model, test_loader, device, id2label)
+    test_metrics = evaluate(model, test_loader, device, id2label)
+    test_precision = test_metrics["precision"]
+    test_recall = test_metrics["recall"]
+    test_f1 = test_metrics["f1"]
     print(f"test precision:{test_precision:.4f} recall:{test_recall:.4f} f1:{test_f1:.4f}")
     swanlab.log({
         "test/precision": test_precision,
