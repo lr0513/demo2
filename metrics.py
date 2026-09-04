@@ -1,12 +1,3 @@
-"""实体级 NER 评估指标。
-
-参照 PyTorch Lightning / torchmetrics 的状态式 Metric 设计：
-- reset() 清空累计状态
-- update() 增量累计 TP/FP/FN
-- compute() 根据累计状态计算 P/R/F1
-"""
-
-
 def extract_entities(label_sequence: list, id2label: dict):
     """
     从标签 id 序列提取完整实体。

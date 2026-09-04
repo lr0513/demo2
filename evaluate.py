@@ -6,11 +6,10 @@ from metrics import NEREntityMetric
 def evaluate(model, data_loader, device, id2label: dict):
     '''
     完整验证/测试评估流程。
-
-    :param model: 训练好的 BertNERModel
-    :param data_loader: 验证集或者测试集 DataLoader
+    :param model: 训练好的BertNERModel
+    :param data_loader: 验证集或者测试集DataLoader
     :param device: cuda
-    :param id2label: id 转标签名
+    :param id2label: id转标签名
     :return: 字典包含平均loss、precision、recall、f1
     '''
     model.eval()

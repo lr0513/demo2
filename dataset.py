@@ -82,7 +82,7 @@ def get_collate_fn(tokenizer, max_len):
     给每个原始字找到它在BERT token序列中的位置，再把该字的标签放到对应位置，特殊token和非首个sub-word统一用-100忽略
     :param tokenizer:
     :param max_len:
-    :return: 
+    :return:
     '''
     def collate_fn(batch):
         texts = [item[0] for item in batch]
