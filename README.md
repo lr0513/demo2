@@ -65,14 +65,16 @@
 ### 2.1 项目结构
 ```text
 demo2/
-├── main.py                 # 程序入口，解析config_path后开始训练
-├── config.py               # 把JSON配置读取为Python配置对象
-├── dataset.py              # 数据读取、Dataset、BERT token标签对齐
-├── model.py                # BERT+全连接层组成的序列标注模型
-├── train.py                # 训练、验证、保存最优模型、测试
-├── evaluate.py             # 验证/测试评估流程
-├── metrics.py              # 实体级NER指标，update/compute/reset风格
-├── utils.py                # 随机种子、目录创建等工具
+├── main.py                 # 训练入口
+├── test.py                 # 单独评估测试集
+├── predict.py              # 输入一句话进行实体预测
+├── src/
+│   ├── config.py           # 读取JSON实验配置
+│   ├── dataset.py          # 数据读取、Dataset、BERT token标签对齐
+│   ├── model.py            # BERT序列标注模型与模型保存/加载
+│   ├── train.py            # 训练与验证
+│   ├── evaluate.py         # 验证/测试评估流程
+│   └── utils.py            # 随机种子、目录创建、实体级指标
 ├── configs/                # 每个实验的JSON配置文件
 └── data/                   # 数据集目录（.gitignore忽略）
 ```
@@ -92,6 +94,28 @@ python main.py --config_path configs/msra_bert_base.json
 python main.py --config_path configs/weibo_bert_base.json
 python main.py --config_path configs/weibo_bert_wwm.json
 ```
+
+单独评估测试集：
+
+```bash
+python test.py --config_path configs/msra_bert_wwm.json
+```
+
+输入一句话进行预测：
+
+```bash
+python predict.py \
+  --config_path configs/weibo_bert_wwm.json \
+  --text "沈以诚是一个歌手"
+```
+
+训练产物默认保存为：
+
+```text
+output/{实验名}/best_model.pt
+```
+
+该文件除模型权重外，还包含标签映射和完整实验配置，测试与预测会自动读取。
 
 ## 3. 实验参数设置
 本实验采用统一超参，仅更换预训练模型与数据集，保证变量唯一，实现对照实验。
