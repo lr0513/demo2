@@ -3,9 +3,9 @@ import os
 
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
-from config import ProjectConfigLoader
-from utils import set_seed
-from train import train
+from src.config import ProjectConfigLoader
+from src.train import train
+from src.utils import set_seed
 
 
 if __name__ == "__main__":
