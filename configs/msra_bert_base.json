@@ -4,8 +4,7 @@
     "experiment_name": "msra_bert_base"
   },
   "model": {
-    "pretrain_name": "bert-base-chinese",
-    "hidden_size":768
+    "pretrain_name": "bert-base-chinese"
   },
   "data": {
     "train_path": "./data/MSRA/train_5k.txt",

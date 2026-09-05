@@ -4,8 +4,7 @@
     "experiment_name": "msra_bert_wwm"
   },
   "model": {
-    "pretrain_name": "hfl/chinese-bert-wwm",
-    "hidden_size": 768
+    "pretrain_name": "hfl/chinese-bert-wwm"
   },
   "data": {
     "train_path": "./data/MSRA/train_5k.txt",
