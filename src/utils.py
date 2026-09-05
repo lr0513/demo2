@@ -56,8 +56,7 @@ def extract_entities(label_sequence: list, id2label: dict):
 
 
 class NEREntityMetric:
-    """实体级 P/R/F1 指标，采用 Lightning Metric 的 update/compute/reset 风格。"""
-
+    """实体级P/R/F1指标，采用Lightning Metric的update/compute/reset风格。"""
     def __init__(self, id2label: dict):
         self.id2label = id2label
         self.reset()
@@ -71,7 +70,6 @@ class NEREntityMetric:
     def update(self, true_labels_list: list, pred_labels_list: list):
         """
         增量累计一批句子的实体级 TP/FP/FN。
-
         :param true_labels_list: 每项是一条句子的真实标签 id 列表，-100 表示非真实 token
         :param pred_labels_list: 每项是与真实标签逐 token 对齐的预测标签 id 列表
         """
