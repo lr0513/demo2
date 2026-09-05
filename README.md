@@ -96,25 +96,38 @@ python main.py --config_path configs/weibo_bert_wwm.json
 ```
 
 单独评估测试集：
-
 ```bash
 python test.py --config_path configs/msra_bert_wwm.json
 ```
 
 输入一句话进行预测：
-
 ```bash
 python predict.py \
   --config_path configs/weibo_bert_wwm.json \
   --text "沈以诚是一个歌手"
 ```
+输出：
+```text
+逐字预测:
+  沈 -> B-PER.NAM
+  以 -> I-PER.NAM
+  诚 -> I-PER.NAM
+  是 -> O
+  个 -> O
+  歌 -> B-PER.NOM
+  手 -> I-PER.NOM
+识别实体:
+  PER.NAM: 沈以诚 [位置 0-2]
+  PER.NOM: 歌手 [位置 5-6]
+```
+也可以不传`--text`，进入交互模式，一条一条输入句子
+`python predict.py --config_path configs/weibo_bert_wwm.json`
+交互模式下输入`exit/quit`可以结束程序
 
 训练产物默认保存为：
-
 ```text
 output/{实验名}/best_model.pt
 ```
-
 该文件除模型权重外，还包含标签映射和完整实验配置，测试与预测会自动读取。
 
 ## 3. 实验参数设置
@@ -135,19 +148,19 @@ output/{实验名}/best_model.pt
 | 可视化工具              | SwanLab记录loss、验证集指标变化曲线                  |
 
 ## 4. 实验结果对比
-### 4.1 四组实验测试集结果汇总
-| 数据集 | 预训练模型 | Precision | Recall | Test‑F1 |
-|:------:|:----------:|:---------:|:------:|:-------:|
-| MSRA | bert‑base‑chinese | 0.9262 | 0.9151 | 0.9206 |
-| MSRA | chinese‑bert‑wwm  | 0.9364 | 0.9104 | **0.9232** |
-| Weibo | bert‑base‑chinese | 0.6883 | 0.6765 | 0.6823 |
-| Weibo | chinese‑bert‑wwm  | 0.6872 | 0.6838 | **0.6855** |
+### 4.1 四组实验验证集与测试集结果汇总
+| 数据集 | 预训练模型 | 实际训练过程 | Best Dev‑F1 | 保存最佳Epoch | Precision | Recall | Test‑F1 |
+|:------:|:----------:|:------------:|:-----------:|:-------------:|:---------:|:------:|:-------:|
+| MSRA | bert‑base‑chinese | Epoch1‑9，触发早停 | 0.9322 | 6 | 0.9262 | 0.9151 | 0.9206 |
+| MSRA | chinese‑bert‑wwm | Epoch1‑10 | 0.9409 | 8 | 0.9364 | 0.9104 | **0.9232** |
+| Weibo | bert‑base‑chinese | Epoch1‑7，触发早停 | 0.7177 | 4 | 0.6883 | 0.6765 | 0.6823 |
+| Weibo | chinese‑bert‑wwm | Epoch1‑7，触发早停 | 0.7179 | 4 | 0.6872 | 0.6838 | **0.6855** |
 
 ### 4.2 训练过程关键现象
-1. MSRA（规范新闻文本）：训练loss快速下降，验证集F1最高可达0.93+，早停生效防止过拟合；
-2. Weibo（社交口语文本）：训练数据量更少、标签类别更多，整体性能显著低于MSRA，模型提升空间受限；
-3. `chinese‑bert‑wwm` 在两个数据集上F1均微弱优于普通bert‑base，验证**全词掩码预训练对中文实体识别具备增益**；
-4. 训练后期train loss无限趋近于0，但验证集F1不再上涨，说明模型出现过拟合，早停策略有效规避该问题。
+1. MSRA（规范新闻文本）：训练loss快速下降，验证集F1最高可达0.93+，`chinese‑bert‑wwm` 在验证集和测试集上均优于 `bert‑base‑chinese`；
+2. Weibo（社交口语文本）：训练数据量更少、标签类别更多，验证集F1约0.72，测试集F1约0.68，整体性能显著低于MSRA；
+3. 模型按验证集最优F1保存，而不是按最后一轮epoch保存：MSRA‑base最优在第6轮，MSRA‑wwm最优在第8轮，Weibo两组最优均在第4轮；
+4. 训练后期train loss无限趋近于0，但验证集F1不再持续上涨，说明模型出现过拟合，早停策略可避免用无效的后期epoch权重评估测试集。
 
 ## 5. 实验分析与总结
 四组对照实验中综合性能最优方案：**MSRA数据集 + chinese‑bert‑wwm，测试集F1=0.9232**。
