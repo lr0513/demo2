@@ -63,15 +63,18 @@ class NEREntityMetric:
 
     def reset(self):
         """重置 TP/FP/FN，避免上一轮验证的数据污染本次指标。"""
+        # TP：模型预测是实体，本身的确是实体
+        # FP：模型预测是实体，但本身不是
+        # FN：本来就是实体，但模型没识别出来
         self.total_tp = 0
-        self.total_fp = 0
-        self.total_fn = 0
+        self.total_pred = 0 # TP + FP：模型预测出的全部实体
+        self.total_gold = 0 # TP + FN：数据里全部真实标注实体
 
     def update(self, true_labels_list: list, pred_labels_list: list):
         """
         增量累计一批句子的实体级 TP/FP/FN。
-        :param true_labels_list: 每项是一条句子的真实标签 id 列表，-100 表示非真实 token
-        :param pred_labels_list: 每项是与真实标签逐 token 对齐的预测标签 id 列表
+        :param true_labels_list: 每项是一条句子的真实标签id列表，-100表示非真实token
+        :param pred_labels_list: 每项是与真实标签逐token对齐的预测标签id列表
         """
         for true_ids, pred_ids in zip(true_labels_list, pred_labels_list):
             valid_pairs = [
@@ -88,17 +91,18 @@ class NEREntityMetric:
             true_entities = extract_entities(true_valid, self.id2label)
             pred_entities = extract_entities(pred_valid, self.id2label)
 
-            self.total_tp += len(true_entities & pred_entities)
-            self.total_fp += len(pred_entities - true_entities)
-            self.total_fn += len(true_entities - pred_entities)
+            tp = len(true_entities & pred_entities)
+            self.total_tp += tp
+            self.total_pred += len(pred_valid)
+            self.total_gold += len(true_valid)
 
     def compute(self) -> dict:
         """根据当前累计状态计算 precision、recall、f1。"""
         total_positive = self.total_tp + self.total_fp
         total_true = self.total_tp + self.total_fn
 
-        precision = self.total_tp / total_positive if total_positive > 0 else 0.0
-        recall = self.total_tp / total_true if total_true > 0 else 0.0
+        precision = self.total_tp / self.total_pred if self.total_pred > 0 else 0.0
+        recall = self.total_tp / self.total_gold if self.total_gold > 0 else 0.0
         f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
 
         return {
