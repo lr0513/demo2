@@ -97,10 +97,6 @@ class NEREntityMetric:
             self.total_gold += len(true_valid)
 
     def compute(self) -> dict:
-        """根据当前累计状态计算 precision、recall、f1。"""
-        total_positive = self.total_tp + self.total_fp
-        total_true = self.total_tp + self.total_fn
-
         precision = self.total_tp / self.total_pred if self.total_pred > 0 else 0.0
         recall = self.total_tp / self.total_gold if self.total_gold > 0 else 0.0
         f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
