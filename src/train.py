@@ -3,10 +3,9 @@ import os
 import swanlab
 import torch
 from torch.optim import AdamW
-from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, get_linear_schedule_with_warmup
 
-from src.dataset import NERDataset
+from src.data_module import NERDataModule
 from src.evaluate import evaluate
 from src.model import BertNERModel
 from src.utils import mkdir_if_not_exist
@@ -31,40 +30,23 @@ def train(cfg):
     )
 
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.pretrain_name)
-    train_dataset = NERDataset.from_file(
-        tokenizer=tokenizer,
-        file_path=cfg.data.train_path,
-        max_len=cfg.train.max_len,
-        class_path=cfg.data.class_path,
-    )
-    label_map = train_dataset.label_map
-    dev_dataset = NERDataset.from_file(
-        tokenizer=tokenizer,
-        file_path=cfg.data.dev_path,
-        max_len=cfg.train.max_len,
-        label_map=label_map,
-    )
+    data_module = NERDataModule(cfg, tokenizer=tokenizer)
+    data_module.setup(splits=("train", "dev"))
 
-    id2label = {v: k for k, v in label_map.items()}
-    num_labels = len(label_map)
+    label_map = data_module.label_map
+    id2label = data_module.id2label
+    num_labels = data_module.num_labels
     print(f"标签数量: {num_labels}")
     print("标签映射:", label_map)
 
     swanlab.config["label_map"] = label_map
 
-    train_loader = DataLoader(
-        train_dataset,
-        batch_size=cfg.train.batch_size,
-        shuffle=True,
-        collate_fn=train_dataset.collate_fn,
+    train_loader = data_module.train_dataloader()
+    dev_loader = data_module.dev_dataloader()
+    print(
+        f"数据集加载完成：训练集{len(data_module.datasets['train'])}句，"
+        f"验证集{len(data_module.datasets['dev'])}句"
     )
-    dev_loader = DataLoader(
-        dev_dataset,
-        batch_size=cfg.train.batch_size,
-        shuffle=False,
-        collate_fn=dev_dataset.collate_fn,
-    )
-    print(f"数据集加载完成：训练集{len(train_dataset)}句，验证集{len(dev_dataset)}句")
 
     model = BertNERModel(
         pretrain_name=cfg.model.pretrain_name,

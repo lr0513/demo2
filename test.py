@@ -4,11 +4,10 @@ import os
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
 import torch
-from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
 from src.config import ProjectConfigLoader
-from src.dataset import NERDataset
+from src.data_module import NERDataModule
 from src.evaluate import evaluate
 from src.model import BertNERModel
 from src.utils import set_seed
@@ -35,21 +34,17 @@ def main():
     max_len = int(metadata.get("max_len", cfg.train.max_len))
     tokenizer = AutoTokenizer.from_pretrained(metadata["pretrain_name"])
 
-    test_dataset = NERDataset.from_file(
+    data_module = NERDataModule(
+        cfg,
         tokenizer=tokenizer,
-        file_path=cfg.data.test_path,
-        max_len=max_len,
         label_map=label_map,
+        max_len=max_len,
     )
-    test_loader = DataLoader(
-        test_dataset,
-        batch_size=cfg.train.batch_size,
-        shuffle=False,
-        collate_fn=test_dataset.collate_fn,
-    )
+    data_module.setup(splits=("test",))
+    test_loader = data_module.test_dataloader()
 
     print(f"使用设备: {device}")
-    print(f"测试集句子数: {len(test_dataset)}")
+    print(f"测试集句子数: {len(data_module.datasets['test'])}")
     metrics = evaluate(model, test_loader, device, id2label)
     print("==========测试集评估==========")
     print(f"test precision:{metrics['precision']:.4f} "
