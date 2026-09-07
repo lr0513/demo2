@@ -6,9 +6,9 @@ from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, get_linear_schedule_with_warmup
 
-from src.dataset import NERDataset, get_collate_fn, load_ner_data
+from src.dataset import NERDataset
 from src.evaluate import evaluate
-from src.model import BertNERModel, save_model_artifact
+from src.model import BertNERModel
 from src.utils import mkdir_if_not_exist
 
 
@@ -30,12 +30,18 @@ def train(cfg):
         },
     )
 
-    train_sentences, train_labels, label_map = load_ner_data(
-        cfg.data.train_path,
+    tokenizer = AutoTokenizer.from_pretrained(cfg.model.pretrain_name)
+    train_dataset = NERDataset.from_file(
+        tokenizer=tokenizer,
+        file_path=cfg.data.train_path,
+        max_len=cfg.train.max_len,
         class_path=cfg.data.class_path,
     )
-    dev_sentences, dev_labels, _ = load_ner_data(
-        cfg.data.dev_path,
+    label_map = train_dataset.label_map
+    dev_dataset = NERDataset.from_file(
+        tokenizer=tokenizer,
+        file_path=cfg.data.dev_path,
+        max_len=cfg.train.max_len,
         label_map=label_map,
     )
 
@@ -46,23 +52,17 @@ def train(cfg):
 
     swanlab.config["label_map"] = label_map
 
-    tokenizer = AutoTokenizer.from_pretrained(cfg.model.pretrain_name)
-    collate_fn = get_collate_fn(tokenizer, max_len=cfg.train.max_len)
-
-    train_dataset = NERDataset(train_sentences, train_labels)
-    dev_dataset = NERDataset(dev_sentences, dev_labels)
-
     train_loader = DataLoader(
         train_dataset,
         batch_size=cfg.train.batch_size,
         shuffle=True,
-        collate_fn=collate_fn,
+        collate_fn=train_dataset.collate_fn,
     )
     dev_loader = DataLoader(
         dev_dataset,
         batch_size=cfg.train.batch_size,
         shuffle=False,
-        collate_fn=collate_fn,
+        collate_fn=dev_dataset.collate_fn,
     )
     print(f"数据集加载完成：训练集{len(train_dataset)}句，验证集{len(dev_dataset)}句")
 
@@ -122,7 +122,7 @@ def train(cfg):
             best_f1 = dev_f1
             early_stop_count = 0
             save_path = os.path.join(cfg.save.model_dir, "best_model.pt")
-            save_model_artifact(save_path, model, label_map, cfg)
+            model.save_artifact(save_path, label_map, cfg)
             print(f"保存最优模型，best_f1={best_f1:.4f}，路径={save_path}")
         else:
             early_stop_count += 1

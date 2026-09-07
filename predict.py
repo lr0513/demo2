@@ -7,8 +7,8 @@ import torch
 from transformers import AutoTokenizer
 
 from src.config import ProjectConfigLoader
-from src.model import load_model_artifact
-from src.utils import extract_entities
+from src.model import BertNERModel
+from src.utils import NEREntityMetric
 
 
 def predict_text(text, model, tokenizer, id2label, device, max_len):
@@ -44,7 +44,7 @@ def predict_text(text, model, tokenizer, id2label, device, max_len):
     for char, label_id in zip(chars, pred_label_ids):
         print(f"  {char} -> {id2label[label_id]}")
 
-    entities = extract_entities(pred_label_ids, id2label)
+    entities = NEREntityMetric.extract_entities(pred_label_ids, id2label)
     print("识别实体:")
     if not entities:
         print("  （未识别到实体）")
@@ -67,7 +67,7 @@ def main():
     if not os.path.exists(ckpt_path):
         raise FileNotFoundError(f"未找到模型文件: {ckpt_path}")
 
-    model, label_map, metadata = load_model_artifact(ckpt_path, device=device)
+    model, label_map, metadata = BertNERModel.load_artifact(ckpt_path, device=device)
     model.to(device)
     id2label = {v: k for k, v in label_map.items()}
     tokenizer = AutoTokenizer.from_pretrained(metadata["pretrain_name"])

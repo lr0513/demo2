@@ -30,18 +30,10 @@ class TrainConfig:
     dropout: float
     grad_clip_norm: float
 
-
-
-
-
 @dataclass
 class SaveConfig:
     model_dir: str
     log_dir: str
-
-
-
-
 
 class ProjectConfigLoader:
     def __init__(self, json_path: str):

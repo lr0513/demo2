@@ -8,9 +8,9 @@ from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
 from src.config import ProjectConfigLoader
-from src.dataset import NERDataset, get_collate_fn, load_ner_data
+from src.dataset import NERDataset
 from src.evaluate import evaluate
-from src.model import load_model_artifact
+from src.model import BertNERModel
 from src.utils import set_seed
 
 
@@ -28,23 +28,24 @@ def main():
     if not os.path.exists(ckpt_path):
         raise FileNotFoundError(f"未找到模型文件: {ckpt_path}")
 
-    model, label_map, metadata = load_model_artifact(ckpt_path, device=device)
+    model, label_map, metadata = BertNERModel.load_artifact(ckpt_path, device=device)
     model.to(device)
     id2label = {v: k for k, v in label_map.items()}
 
     max_len = int(metadata.get("max_len", cfg.train.max_len))
     tokenizer = AutoTokenizer.from_pretrained(metadata["pretrain_name"])
 
-    test_sentences, test_labels, _ = load_ner_data(
-        cfg.data.test_path,
+    test_dataset = NERDataset.from_file(
+        tokenizer=tokenizer,
+        file_path=cfg.data.test_path,
+        max_len=max_len,
         label_map=label_map,
     )
-    test_dataset = NERDataset(test_sentences, test_labels)
     test_loader = DataLoader(
         test_dataset,
         batch_size=cfg.train.batch_size,
         shuffle=False,
-        collate_fn=get_collate_fn(tokenizer, max_len=max_len),
+        collate_fn=test_dataset.collate_fn,
     )
 
     print(f"使用设备: {device}")
